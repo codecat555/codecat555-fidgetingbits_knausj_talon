@@ -5,7 +5,9 @@
 # in command mode or inside of a terminal and wanting to run the command? If
 # you can't imagine doing it, it suits this file over vim.talon
 
-app:vim
+app: vim
+app: /.*/
+and title: /VIM/
 not tag: user.vim_terminal
 and not tag: user.vim_command_mode
 -

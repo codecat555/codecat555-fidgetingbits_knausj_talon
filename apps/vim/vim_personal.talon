@@ -1,4 +1,6 @@
 app: vim
+app: /.*/
+and title: /VIM/
 -
 
 ###

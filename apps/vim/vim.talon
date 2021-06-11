@@ -28,7 +28,9 @@
 #    functions
 
 app: vim
-and not tag: user.vim_command_mode
+app: /.*/
+and title: /VIM/
+not tag: user.vim_command_mode
 -
 
 tag(): user.vim

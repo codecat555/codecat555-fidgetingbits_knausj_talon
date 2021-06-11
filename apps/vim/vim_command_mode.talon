@@ -2,7 +2,7 @@
 # command mode
 # See `:help cmdline`
 
-win.title: /VIM MODE:c/
+title: /VIM MODE:c/
 -
 tag(): user.vim_command_mode
 
