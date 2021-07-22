@@ -440,7 +440,6 @@ your vim screen, and your cursor should be back in the split with the tutorial.
 Speak the following commands
 
 * `search reversed lazy  dog` (extra space is on purpose to simplify search)
-* `enter`
 * `yank line`
 * `split right`
 * `paste above`

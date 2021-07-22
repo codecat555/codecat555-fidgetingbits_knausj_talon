@@ -395,8 +395,8 @@ ctx.lists["self.vim_text_object_range"] = {
 
 # Common names used for text object selection, vim-surround, etc
 common_key_names = {
-    "tick": "'",
-    "quote": '"',
+    "vim_quote": "'",
+    "vim_dubquote": '"',
 }
 
 
@@ -644,6 +644,7 @@ def vim_motions_all_adjust(m) -> str:
 @mod.capture(rule="{self.vim_counted_actions}")
 def vim_counted_actions(m) -> str:
     "Returns string matching accounted action"
+    print(f"VIM DEBUG: capture rule: vim_counted_actions = {m.vim_counted_actions}")
     return m.vim_counted_actions
 
 
@@ -1218,6 +1219,8 @@ class VimMode:
         if type(valid_mode_ids) != list:
             valid_mode_ids = [valid_mode_ids]
         self.dprint(f"Want to adjust from from {cur} to one of {valid_mode_ids}")
+        #import traceback
+        #self.dprint(f"{traceback.print_stack()}")
         if cur not in valid_mode_ids:
             # Just favor the first mode match
             self.set_mode(
