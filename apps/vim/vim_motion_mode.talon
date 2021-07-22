@@ -497,6 +497,9 @@ till (reversed|previous) <user.ordinals> <user.unmodified_key>:
 find <user.ordinals> <user.unmodified_key>:
     user.vim_any_motion_mode("f{unmodified_key}{ordinals-1};")
 
+find (reversed|previous) <user.unmodified_key>:
+    user.vim_any_motion_mode("F{unmodified_key};")
+
 find (reversed|previous) <user.ordinals> <user.unmodified_key>:
     user.vim_any_motion_mode("F{unmodified_key}{ordinals-1};")
 

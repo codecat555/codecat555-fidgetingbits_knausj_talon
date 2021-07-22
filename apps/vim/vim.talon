@@ -127,6 +127,12 @@ settings():
 
 
 ###
+# test
+###
+#view halloo: "run fox run"
+#paste above: "P"
+
+###
 # File editing and management
 ###
 file save all:
