@@ -4,7 +4,9 @@
 # vim_editing.py
 
 import time
-from talon import Context, actions
+from talon import Context, actions, Module
+
+mod = Module()
 
 ctx = Context()
 ctx.matches = r"""
@@ -127,23 +129,29 @@ class EditActions:
 
 
 
-@ctx.action_class("user")
-class UserActions:
+@mod.action_class
+class Actions:
     def delete_word_right():
+        """delete word right"""
         actions.user.vim_normal_mode("dw")
 
     def delete_word_left():
+        """delete word left"""
         actions.user.vim_normal_mode("db")
 
     def delete_line_remaining():
+        """delete line remaining"""
         actions.user.vim_normal_mode("d$")
 
     def delete_line_beginning():
+        """delete line beginning"""
         actions.user.vim_normal_mode("d0")
 
     def line_find_forward(key: str):
+        """line find forward"""
         print(key)
         actions.user.vim_any_motion_mode(f"f{key}")
 
     def line_find_backward(key: str):
+        """line find backward"""
         actions.user.vim_any_motion_mode(f"F{key}")
