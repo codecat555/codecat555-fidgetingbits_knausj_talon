@@ -120,10 +120,10 @@ settings():
     user.vim_mode_switch_moves_cursor = 0
 
     # Whether or not use pynvim rpc if it is available
-    user.vim_use_rpc = 1
+    user.vim_use_rpc = 0
 
     # Adds debug output to the talon log
-    user.vim_debug = 1
+    user.vim_debug = 0
 
 
 ###
