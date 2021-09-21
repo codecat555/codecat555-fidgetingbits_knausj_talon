@@ -614,8 +614,8 @@ visual mode: user.vim_set_visual_mode()
 
 # sort of quasi-modes - see vim_command_line.talon
 show history: user.vim_command_mode(":hist\n")
-command line (search|history) [mode]: user.vim_any_motion_mode_exterm_key("q:")
-search command [mode]: user.vim_any_motion_mode_exterm_key("q/")
+command line (search|history) [mode]: user.vim_any_motion_mode_exterm("q:")
+search command [mode]: user.vim_any_motion_mode_exterm("q/")
 
 ###
 # Searching
