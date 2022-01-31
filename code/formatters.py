@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+from random import randint
 from typing import List, Union
 
 from talon import Context, Module, actions, app, clip, imgui, ui
@@ -41,7 +42,7 @@ def format_phrase(m: Union[str, Phrase], fmtrs: str):
         if m.words[-1] == "over":
             m.words = m.words[:-1]
         words = actions.dictate.parse_words(m)
-        words = actions.dictate.replace_words(words)
+        words = actions.user.replace_phrases(words)
 
     result = last_phrase_formatted = format_phrase_no_history(words, fmtrs)
     actions.user.add_phrase_to_history(result)
@@ -112,6 +113,20 @@ def every_word(word_func):
 
     return formatter_function
 
+def spongebob(i, word, _):
+    capitalize = bool(randint(0, 1))
+    formatted_string = ''
+
+    for char in word:
+        if not char.isalpha():
+            formatted_string += char
+        elif capitalize:
+            formatted_string += char.upper()
+        else:
+            formatted_string += char.lower()
+        capitalize = not capitalize
+
+    return formatted_string
 
 formatters_dict = {
     "ALL_CAPS": (SEP, every_word(lambda w: w.upper())),
@@ -156,8 +171,9 @@ formatters_dict = {
         first_vs_rest(lambda w: w.lower(), lambda w: "_" + w.lower()),
     ),
     "SPACE_SURROUNDED_STRING": (SEP, surround(" ")),
+    "SPONGEBOB": (SEP, spongebob),
 }
-# This is the mapping from spoken phrases to formatters
+# This is the mapping from spoken phrases to formatters. 
 formatters_words = {
     "allcaps": formatters_dict["ALL_CAPS"],
     "alldown": formatters_dict["ALL_LOWERCASE"],
@@ -172,22 +188,16 @@ formatters_words = {
     "dashing": formatters_dict["DASH_SEPARATED"],
     "equaling": formatters_dict["EQUAL_SEPARATED"],
     "long arg": formatters_dict["LONG_ARG"],
-    "packed": formatters_dict["DOUBLE_COLON_SEPARATED"],
+    "packing": formatters_dict["DOUBLE_COLON_SEPARATED"],
     "padded": formatters_dict["SPACE_SURROUNDED_STRING"],
-    # "say": formatters_dict["NOOP"],
-    # "sentence": formatters_dict["CAPITALIZE_FIRST_WORD"],
     "slasher": formatters_dict["SLASH_SEPARATED"],
     "smash": formatters_dict["NO_SPACES"],
     "snake": formatters_dict["SNAKE_CASE"],
-    #"speak": formatters_dict["NOOP"],
+    "spongbob": formatters_dict["SPONGEBOB"],
     "quoted": formatters_dict["DOUBLE_QUOTED_STRING"],
     "ticks": formatters_dict["SINGLE_QUOTED_STRING"],
     "title": formatters_dict["CAPITALIZE_ALL_WORDS"],
     "upper": formatters_dict["ALL_CAPS"],
-    # disable a few formatters for now
-    # "tree": formatters_dict["FIRST_THREE"],
-    # "quad": formatters_dict["FIRST_FOUR"],
-    # "fiver": formatters_dict["FIRST_FIVE"],
 }
 
 all_formatters = {}
@@ -259,15 +269,10 @@ class Actions:
 
     def insert_formatted(phrase: Union[str, Phrase], formatters: str):
         """Inserts a phrase formatted according to formatters. Formatters is a comma separated list of formatters (e.g. 'CAPITALIZE_ALL_WORDS,DOUBLE_QUOTED_STRING')"""
-        #actions.insert(format_phrase(phrase, formatters))
-        actions.user.paste(format_phrase(phrase, formatters))
+        actions.insert(format_phrase(phrase, formatters))
+        #actions.user.paste(format_phrase(phrase, formatters))
 
-    def formatters_help_toggle():
-        """Lists all formatters"""
-        if gui.showing:
-            gui.hide()
-        else:
-            gui.show()
+
 
     def formatters_reformat_last(formatters: str) -> str:
         """Clears and reformats last formatted phrase"""
@@ -293,9 +298,16 @@ class Actions:
         # selected text (e.g. Emacs, Vim)
         edit.delete()
         text = actions.self.formatted_text(unformatted, formatters)
-        #actions.insert(text)
-        actions.user.paste(text)
+        actions.insert(text)
+        #actions.user.paste(text)
         return text
+
+    def get_formatters_words():
+        """returns a list of words currently used as formatters, and a demonstration string using those formatters"""
+        formatters_help_demo = {}
+        for name in sorted(set(formatters_words.keys())):
+            formatters_help_demo[name] = format_phrase_no_history(['one', 'two', 'three'], name)
+        return  formatters_help_demo
 
     def reformat_text(text: str, formatters: str) -> str:
         """Reformat the text."""
@@ -305,13 +317,14 @@ class Actions:
     def insert_many(strings: List[str]) -> None:
         """Insert a list of strings, sequentially."""
         for string in strings:
-            #actions.insert(string)
-            actions.user.paste(string)
+            actions.insert(string)
+            #actions.user.paste(string)
 
 def unformat_text(text: str) -> str:
     """Remove format from text"""
-    unformatted = re.sub(r"[^a-zA-Z0-9]+", " ", text)
-    # Split on camelCase, including numbes
+    unformatted = re.sub(r"[^\w]+", " ", text)
+    # Split on camelCase, including numbers
+    # FIXME: handle non-ASCII letters!
     unformatted = re.sub(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|(?<=[a-zA-Z])(?=[0-9])|(?<=[0-9])(?=[a-zA-Z])", " ", unformatted)
     # TODO: Separate out studleycase vars
     return unformatted.lower()
@@ -323,10 +336,3 @@ ctx.lists["self.prose_formatter"] = {
     "sentence": "CAPITALIZE_FIRST_WORD",
 }
 
-
-@imgui.open()
-def gui(gui: imgui.GUI):
-    gui.text("List formatters")
-    gui.line()
-    for name in sorted(set(formatters_words.keys())):
-        gui.text(f"{name} | {format_phrase_no_history(['one', 'two', 'three'], name)}")

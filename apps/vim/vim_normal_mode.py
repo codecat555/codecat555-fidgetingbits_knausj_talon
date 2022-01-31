@@ -13,10 +13,19 @@ class EditActions:
     # mode we select up we want to select the current line in the one above, as
     # otherwise there is no current selection
     def extend_line_up():
-        actions.user.insert("Vk")
+        actions.insert("Vk")
 
     def extend_line_down():
         actions.user.insert("Vj")
 
     def undo():
         actions.user.vim_normal_mode_key("u")
+
+    def indent_more():
+        actions.insert(">>")
+
+    def indent_less():
+        actions.insert("<<")
+
+    def delete_line():
+        actions.insert("dd")

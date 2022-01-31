@@ -10,6 +10,7 @@ sexy: "XXX"
 bangy: "!!!"
 (dot dot | dotdot): ".."
 (ellipses|dotty): "..."
+(snippy): "[SNIPPED]"
 (comma and | spamma): ", "
 plus: "+"
 arrow: "->"
@@ -83,13 +84,13 @@ escaped (round):
 # NOTE: purposely no edit.left()
 [pair] ampers: "&&"
 
-angle that:
+angles that:
     text = edit.selected_text()
     user.paste("<{text}>")
-(square | square bracket) that:
+(squares) that:
     text = edit.selected_text()
     user.paste("[{text}]")
-(bracket | brace) that:
+(braces) that:
     text = edit.selected_text()
     user.paste("{{{text}}}")
 round that:
@@ -99,6 +100,9 @@ percent that:
     text = edit.selected_text()
     user.paste("%{text}%")
 quote that:
+    text = edit.selected_text()
+    user.paste("'{text}'")
+(double quote | dubquote) that:
     text = edit.selected_text()
     user.paste('"{text}"')
 (globby|glob line):

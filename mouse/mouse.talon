@@ -3,17 +3,31 @@
 
 settings():
     #stop continuous scroll/gaze scroll with a pop
-    user.mouse_enable_pop_stops_scroll = 0
+    user.mouse_enable_pop_stops_scroll = 1
+
     #enable pop click with 'control mouse' mode
     user.mouse_enable_pop_click = 1
-    #hide cursor when mouse_wake is called to enable zoom mouse
-    user.mouse_wake_hides_cursor = 1
+
+    #hide cursor when mouse_wake is useful when using zoom mouse
+    user.mouse_wake_hides_cursor = 0
+
     user.mouse_enable_zoom_auto_click = 0
+
     user.mouse_zoom_auto_click_timeout = 1.2
+
     # eye detection suspend settings
-    user.mouse_sleep_tracker_timeout_frames = 200
-    user.mouse_sleep_tracker_suspend_screen = 1
-    user.mouse_sleep_tracker_enter_sleep_mode = 1
+    #user.mouse_sleep_tracker_timeout_frames = 200
+    #user.mouse_sleep_tracker_suspend_screen = 1
+    #user.mouse_sleep_tracker_enter_sleep_mode = 1
+
+    # When enabled, the 'Scroll Mouse' GUI will not be shown.
+    user.mouse_hide_mouse_gui = 0
+
+    # The default amount used when scrolling continuously
+    user.mouse_continuous_scroll_amount = 80
+
+    # The amount to scroll up/down (equivalent to mouse wheel on Windows by default)
+    user.mouse_wheel_down_amount = 120
 
 ###
 # Configuration
@@ -38,13 +52,13 @@ camera overlay: eye_mouse.camera_overlay.toggle()
 # single click
 (touch|chiff): user.mouse_click(0, 1)
 # right click
-#(righty|rick): user.mouse_click(1, 1)
+(righty|ricky): user.mouse_click(1, 1)
 ## middle click
 #midclick: user.mouse_click(2, 1)
 ## double click
-#dyke: user.mouse_click(0, 2)
+dicky: user.mouse_click(0, 2)
 ## triple click
-#trike: user.mouse_click(0, 3)
+tricky: user.mouse_click(0, 3)
 
 
 #see keys.py for modifiers.
@@ -56,13 +70,13 @@ camera overlay: eye_mouse.camera_overlay.toggle()
 #super = windows key
 
 #<user.modifiers> (touch):
-#    key("{modifiers}:down")
-#    user.mouse_click(0, 1)
-#    key("{modifiers}:up")
+# key("{modifiers}:down")
+# user.mouse_click(0, 1)
+# key("{modifiers}:up")
 #<user.modifiers> (righty|rick):
-#    key("{modifiers}:down")
-#    user.mouse_click(1, 1)
-#    key("{modifiers}:up")
+# key("{modifiers}:down")
+# user.mouse_click(1, 1)
+# key("{modifiers}:up")
 
 # move to eye location without clicking
 hover: user.mouse_move_cursor()
@@ -74,19 +88,36 @@ hover: user.mouse_move_cursor()
 ###
 wheel down: user.mouse_scroll_down()
 wheel tiny [down]: mouse_scroll(20)
+# NOTE: can be repeated for faster scrolling
 wheel downer: user.mouse_scroll_down_continuous()
+
 wheel up: user.mouse_scroll_up()
 wheel tiny up: mouse_scroll(-20)
+# NOTE: can be repeated for faster scrolling
 wheel upper: user.mouse_scroll_up_continuous()
+
+# NOTE: can be repeated to stop gaze scroll
 wheel gaze: user.mouse_gaze_scroll()
+
 wheel stop: user.mouse_scroll_stop()
 wheel left: mouse_scroll(0, -40)
 wheel tiny left: mouse_scroll(0, -20)
 wheel right: mouse_scroll(0, 40)
 wheel tiny right: mouse_scroll(0, 20)
+
 curse (show|yes): user.mouse_show_cursor()
 curse (hide|no): user.mouse_hide_cursor()
-drag: user.mouse_drag()
+
+left drag | drag:
+    user.mouse_drag(0)
+    # close the mouse grid
+    user.grid_close()
+right drag | righty drag:
+    user.mouse_drag(1)
+    # close the mouse grid
+    user.grid_close()
+end drag | drag end:
+    user.mouse_drag_end()
 
 ###
 # Coordinate capturing

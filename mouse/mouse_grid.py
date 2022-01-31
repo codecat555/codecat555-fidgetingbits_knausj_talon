@@ -1,6 +1,6 @@
 # courtesy of https://github.com/timo/
 # see https://github.com/timo/talon_scripts
-from talon import Module, Context, app, canvas, screen, settings, ui, ctrl, cron
+from talon import Module, Context, actions, app, canvas, screen, settings, ui, ctrl, cron
 from talon.skia import Shader, Color, Paint, Rect
 from talon.types.point import Point2d
 from talon_plugins import eye_mouse, eye_zoom_mouse
@@ -19,7 +19,7 @@ narrow_expansion = mod.setting(
 )
 
 mod.tag("mouse_grid_showing", desc="Tag indicates whether the mouse grid is showing")
-mod.tag("mouse_grid_enabled", desc="Tag enables the mouse grid commands.")
+mod.tag("mouse_grid_enabled", desc="Deprecated: do not use.  Activates legacy m grid command")
 ctx = Context()
 
 
@@ -58,7 +58,7 @@ class MouseSnapNine:
         self.mcanvas = canvas.Canvas.from_screen(screen)
         if self.active:
             self.mcanvas.register("draw", self.draw)
-            self.mcanvas.freeze()
+            self.mcanvas.show()
 
     def show(self):
         if self.active:
@@ -71,7 +71,7 @@ class MouseSnapNine:
             self.was_control_mouse_active = True
             eye_mouse.control_mouse.toggle()
         self.mcanvas.register("draw", self.draw)
-        self.mcanvas.freeze()
+        self.mcanvas.show()
         self.active = True
         return
 
@@ -218,12 +218,12 @@ class MouseSnapNine:
         if self.count >= 2:
             self.update_screenshot()
         else:
-            self.mcanvas.freeze()
+            self.mcanvas.show()
 
     def update_screenshot(self):
         def finish_capture():
             self.img = screen.capture_rect(self.rect)
-            self.mcanvas.freeze()
+            self.mcanvas.show()
 
         self.mcanvas.hide()
         cron.after("16ms", finish_capture)
@@ -247,7 +247,7 @@ class MouseSnapNine:
     def go_back(self):
         # FIXME: need window and screen tracking
         self.count, self.rect = self.history.pop()
-        self.mcanvas.freeze()
+        self.mcanvas.show()
 
 
 mg = MouseSnapNine()
@@ -279,7 +279,7 @@ class GridActions:
     def grid_narrow_list(digit_list: typing.List[str]):
         """Choose fields multiple times in a row"""
         for d in digit_list:
-            GridActions.grid_narrow(int(d))
+            actions.self.grid_narrow(int(d))
 
     def grid_narrow(digit: Union[int, str]):
         """Choose a field of the grid and narrow the selection down"""

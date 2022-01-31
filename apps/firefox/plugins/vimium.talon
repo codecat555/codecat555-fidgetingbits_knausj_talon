@@ -49,7 +49,7 @@ focus input:
 [open] links [hints] new:
     key("F")
 # TODO: open multiple links
-copy link:
+copy page links:
     insert("yf")
 follow previous [link]:
     insert("[[")
@@ -85,7 +85,7 @@ go to mark <user.letter>':
 (page|tab) open bookmark new <user.text>:
     insert("B")
     insert("{text}")
-(page|tab) find:
+tab find:
     key("T")
 edit address bar:
     insert("ge")
@@ -94,15 +94,15 @@ edit address bar new tab:
 
 # Using find
 #  Searching
-find <user.text>:
+[page] find <user.text>:
     key("/")
     insert("{text}")
     key("enter")
-find:
+[page] find:
     key("/")
-next [result]:
+result next:
     key("n")
-(prev|previous) [result]:
+result last:
     key("N")
 
 # Navigating history

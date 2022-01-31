@@ -9,9 +9,14 @@ tagList = [
     "libptmalloc",
     "libdlmalloc",
     "libheap",
+    "slabdbg",
+    "gdb_vmlinux",
     "git",  # commandline tag for git commands
     "ida",
     "tabs",
+    "generic_windows_shell",
+    "generic_unix_shell",
+    "taskwarrior",  # commandline tag for taskwarrior commands
     "tmux",
     "windbg",
     "yay",
@@ -30,6 +35,8 @@ tagList = [
     "vagrant",
     "git",
     "pulse_audio",
+    "virsh",
+    "iptables",
     "docker",
     # allows programs running inside of a terminal (ex: gdb) to share
     # common terminal commands like ctrl+c, but without actually
@@ -42,6 +49,8 @@ tagList = [
     "htop",
     "taskwarrior_tui",
     "vimium",
+    "obs_studio_global",
+    "onyx",  # XXX - switch to hostname scope
 ]
 
 for entry in tagList:

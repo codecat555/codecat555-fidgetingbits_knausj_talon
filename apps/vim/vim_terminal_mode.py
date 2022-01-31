@@ -1,6 +1,7 @@
 import re
 from talon import Context, Module, actions, settings, ui
 
+mod = Module()
 ctx = Context()
 ctx.matches = r"""
 tag: user.vim_terminal
@@ -22,6 +23,14 @@ class EditActions:
     def paste():
         actions.key("ctrl-shift-v")
 
+
+@mod.action_class
+class Actions:
+    def vim_set_normal_mode():
+        """set normal mode"""
+        v = VimMode()
+        v.set_normal_mode(auto=False)
+
 def parse_vim_term_title(window):
     """a variety of parsing to gracefully handle various shell commands
     running inside of a vim terminal.
@@ -34,8 +43,6 @@ def parse_vim_term_title(window):
         or not window.title.startswith("VIM MODE:t")
         or "TERM:" not in window.title
     ):
-
-        # ctx.tags = []
         return
 
     # pull a TERM: line out of something potentially like
@@ -44,9 +51,14 @@ def parse_vim_term_title(window):
     shell_command = window.title[index + len("TERM:") :]
     if ":" in shell_command:
         shell_command = shell_command.split(":")[0]
-    shell_command = shell_command.split(" ")[0]
+    if shell_command.startswith("sudo"):
+        # Handle something like:
+        # VIM MODE:t RPC:/tmp/nvimlVeccr/0  TERM:sudo gdb (term://~//161917:/usr/bin/zsh) zsh
+        shell_command = shell_command.split(" ")[1]
+    else:
+        shell_command = shell_command.split(" ")[0]
 
-    populate_shell_tags(shell_command)
+    populate_shell_tags(shell_command, window.title)
     populate_language_modes(shell_command)
 
 
@@ -72,7 +84,7 @@ def populate_language_modes(shell_command):
     return
 
 
-def populate_shell_tags(shell_command):
+def populate_shell_tags(shell_command, window_title):
     """TODO: Docstring for populate_shell_tags.
     :returns: TODO
 
@@ -99,6 +111,7 @@ def populate_shell_tags(shell_command):
     regex_shell_tags = {
         r"^\w*@\w*": "terminal",
         r"^\w*@\w*:.*[$#]": "terminal",  # this is redundant with above, but ideally I would rather have something like this
+        ".*virsh start --console.*": "terminal",  # hacky match for libvirt containers 
     }
     if shell_command in shell_tags:
         ctx.tags = [shell_tags[shell_command]]
@@ -110,8 +123,13 @@ def populate_shell_tags(shell_command):
                 ctx.tags = [fuzzy_shell_tags[tag]]
                 found_fuzzy = True
                 break
+        # XXX - sometimes I need to match on a much larger command than just
+        # the first shell command, for now I do it on the entire window
+        # title... best would probably to be have something like CMD:
+        # eventually followed by something else so we can difference, since we
+        # don't really need to parse the (term:) part and beyond...
         for expression in regex_shell_tags:
-            m = re.match(expression, shell_command)
+            m = re.match(expression, window_title)
             if m is not None:
                 ctx.tags = [regex_shell_tags[expression]]
 

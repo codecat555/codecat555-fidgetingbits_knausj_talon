@@ -14,9 +14,16 @@ tag(): user.readline
 # optional generic debugger plugins
 # specify which heap plugin you're using
 # similar to the architecture
-tag(): user.libptmalloc
+# userland heap
+#tag(): user.libptmalloc
 #tag(): user.libdlmalloc
 #tag(): user.libheap
+
+# linux kernel
+tag(): user.gdb_vmlinux
+tag(): user.slabdbg
+
+# frameworks
 tag(): user.gef
 #tag(): user.pwndbg
 
@@ -87,8 +94,21 @@ undisplay: "undisplay\n"
 (list|show|info) variables: "info variables\n"
 (list|show|info) (args|arguments): "info args\n"
 
+
+
 # threads
-info threads: "info threads\n"
+(thread list|info threads): "info threads\n"
+thread switch <number_small>: "thread {number_small}\n"
+thread (find|search): "thread find "
+thread show: "thread\n"
+thread help: "help thread\n"
+# run command across all threads
+thread do: "thread apply all "
+thread local storage: "p/x *(tcbhead_t*) $fs_base\n"
+thread stack guard: "p/x (*(tcbhead_t*) $fs_base)->stack_guard"
+thread pointer guard: "p/x (*(tcbhead_t*) $fs_base)->pointer_guard"
+
+frame info <number_small>: "frame info {number_small}\n"
 
 # inferiors
 info inferiors: "info inferiors\n"
@@ -106,6 +126,7 @@ set args: "set args "
 
 info source: "info source\n"
 info signal: "info signal\n"
+info process: "info proc\n"
 handle signal <user.signal>: "handle {signal} "
 signal <user.signal>: "signal {signal} "
 
@@ -152,3 +173,8 @@ print structure size clip:
     key(")")
     key(enter)
     
+unset print elements:
+    insert("set print elements 0\n")
+
+unset print repeats:
+    insert("set print repeats 0\n")

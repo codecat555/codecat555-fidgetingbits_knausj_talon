@@ -10,7 +10,7 @@ from talon import Context, Module, actions, app
 #   pit  - conflicts with page
 #   yank - conflicts with vim command
 #   sit - conflicting with split on conformer
-default_alphabet = "air bat cap drum each fin gust harp sit jake crunch look made near odd peck quench red sun trap urge vest whale plex yell zip".split(
+default_alphabet = "air bat cap drum each fin gust harp sit jury crunch look made near odd peck quench red sun trap urge vest whale plex yell zip".split(
     " "
 )
 letters_string = "abcdefghijklmnopqrstuvwxyz"
@@ -65,10 +65,12 @@ def letter(m) -> str:
     "One letter key"
     return m.letter
 
+
 @mod.capture(rule="{self.hex_letter}")
 def hex_letter(m) -> str:
     "One hex letter key"
     return m.hex_letter
+
 
 @mod.capture(rule="{self.letter}")
 def upper_letter(m) -> str:
@@ -81,10 +83,12 @@ def letters(m) -> str:
     "Multiple letter keys"
     return m.letters
 
+
 @mod.capture(rule="{self.hex_letters}")
 def hex_letters(m) -> str:
     "Multiple hex letter keys"
-    return m.letters
+    return m.hex_letters
+
 
 @mod.capture(rule="{self.special_key}")
 def special_key(m) -> str:
@@ -152,15 +156,17 @@ def letters(m) -> str:
     "Multiple letter keys"
     return "".join(m.letter_list)
 
+
 @mod.capture(rule="{self.hex_letter}+")
 def hex_letters(m) -> str:
     "Multiple letter keys"
     return "".join(m.hex_letter_list)
 
+
 ctx = Context()
 modifier_keys = {
     # If you find 'alt' is often misrecognized, try using 'alter'.
-    "alt": "alt",  #'alter': 'alt',
+    "alter": "alt",  #'alter': 'alt',
     "control": "ctrl",  #'troll':   'ctrl',
     "shift": "shift",  #'sky':     'shift',
     "super": "super",
@@ -172,12 +178,11 @@ ctx.lists["self.modifier_key"] = modifier_keys
 alphabet = dict(zip(default_alphabet, letters_string))
 ctx.lists["self.letter"] = alphabet
 
-hex_alphabet = dict(zip(hex_alphabet, hex_letters_string))
-ctx.lists["self.hex_letter"] = hex_alphabet
-
 # `punctuation_words` is for words you want available BOTH in dictation and as
-# key names in command mode. `symbol_key_words` is for key names that should be
-# available in command mode, but NOT during dictation.
+# key names in command mode. 
+# `symbol_key_words` is for key names that should be available in command mode, but NOT during dictation.
+# XXX - There should be a way to make some things only available in dictation
+# mode...
 punctuation_words = {
     # TODO: I'm not sure why we need these, I think it has something to do with
     # Dragon. Possibly it has been fixed by later improvements to talon? -rntz
@@ -185,7 +190,7 @@ punctuation_words = {
     ",": ",",  # <== these things
     "back tick": "`",
     "grave": "`",
-    #"comma": ",",
+    # "comma": ",",
     "calm": ",",  # i found comma and commit would conflict too much
     "period": ".",
     "full stop": ".",
@@ -198,8 +203,9 @@ punctuation_words = {
     "asterisk": "*",
     "hash sign": "#",
     "percent sign": "%",
-    "at sign": "@",
     "amper": "&",
+    "swirl": "@",
+    "pound sign": "£",
 }
 symbol_key_words = {
     "grave": "`",
@@ -208,27 +214,25 @@ symbol_key_words = {
     "blank": " ",
     "semi": ";",
     "tick": "'",
-    "lock": "[",
-    "square": "[",
-    "rock": "]",
+    "locker": "[",
+    "rocker": "]",
     "slash": "/",
-    "bish": "\\",
+    "bash": "\\",
     "minus": "-",
     "dash": "-",
     "equals": "=",
     "plus": "+",
     "question": "?",
-    # "squiggle": "~",
     "wave": "~",
     "bang": "!",
     "dollar": "$",
     "score": "_",
-    "colon": ":",
     "coal": ":",
     "lub": "(",
     "rub": ")",
-    "lace": "{",
-    "race": "}",
+    # lace somehow clashes with everything lol
+    "lacky": "{",
+    "racky": "}",
     "langle": "<",
     "rangle": ">",
     "star": "*",
@@ -238,15 +242,22 @@ symbol_key_words = {
     "caret": "^",
     "swirl": "@",
     "amper": "&",
-    "pipe": "|",
+    "piper": "|",
     "quote": '"',
+    "pound": "£",
 }
 
 # make punctuation words also included in {user.symbol_keys}
 symbol_key_words.update(punctuation_words)
 ctx.lists["self.punctuation"] = punctuation_words
 ctx.lists["self.symbol_key"] = symbol_key_words
-ctx.lists["self.number_key"] = dict(zip(default_digits, numbers))
+number_keys = dict(zip(default_digits, numbers))
+ctx.lists["self.number_key"] = number_keys
+
+hex_spoken = dict(zip(default_alphabet[:6], hex_letters_string))
+hex_alphabet = dict(zip(hex_alphabet, hex_letters_string))
+ctx.lists["self.hex_letter"] = {**hex_spoken, **hex_alphabet, **number_keys}
+
 ctx.lists["self.arrow_key"] = {
     "down": "down",
     "left": "left",
@@ -256,22 +267,21 @@ ctx.lists["self.arrow_key"] = {
 
 
 simple_keys = [
-#    "backspace",
+    #    "backspace",
     "end",
     "enter",
     "escape",
     "home",
-#    "insert",
-#    "pagedown",
-#    "pageup",
-#    "space",
+    #    "insert",
+    #    "pagedown",
+    #    "pageup",
+    #    "space",
     "tab",
 ]
 
 alternate_keys = {
     "junk": "backspace",
     "delhi": "delete",
-    "cape": "escape",
     "page up": "pageup",
     "page down": "pagedown",
 }

@@ -49,7 +49,6 @@ break [point] enable <number_small>: user.debugger_enable_breakpoint_id(number_s
 
 # Navigation
 
-
 # Memory Inspection
 (stack|back) trace: user.debugger_backtrace()
 (disassemble|dizzy): user.debugger_disassemble()
@@ -65,7 +64,7 @@ dump pointers: user.debugger_dump_pointers()
 
 list modules: user.debugger_list_modules()
 list sections: user.debugger_show_binary_sections()
-list memory [mapping]: user.debugger_show_memory_sections()
+(memory list|memory map|list memory [mapping]): user.debugger_show_memory_sections()
 
 
 # Type inspection
