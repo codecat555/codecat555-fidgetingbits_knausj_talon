@@ -8,6 +8,11 @@ tag: user.i3wm
 portal <number_small>: user.system_command("i3-msg workspace {number_small}")
 portal ten: user.system_command("i3-msg workspace 10")
 (portal flip|flipper): user.system_command("i3-msg workspace back_and_forth")
+
+# XXX - This is because of buggy recognition of port flip all the time, the
+# alternative would be to rework the portal argument to not accept anything
+# outside of zero through ten or something
+portal oh: user.system_command("i3-msg workspace back_and_forth")
 portal right: user.system_command("i3-msg workspace next")
 portal left: user.system_command("i3-msg workspace prev")
 
@@ -45,7 +50,11 @@ window resize: user.system_command('i3-msg mode "resize"')
 (win|window) vertical: user.system_command("i3-msg split v")
 
 window grow: user.i3wm_window_grow(1)
-window shrink: user.i3wm_window_shrink(1)
+window [<number>] shrink: user.i3wm_window_shrink(number or 50)
+window [<number>] taller: user.i3wm_window_adjust_height_up(number or 50)
+window [<number>] shorter: user.i3wm_window_adjust_height_down(number or 50)
+window [<number>] fatter: user.i3wm_window_adjust_width_out(number or 50)
+window [<number>] skinnier: user.i3wm_window_adjust_width_in(number or 50)
 
 horizontal (shell|terminal):
     user.system_command("i3-msg split h")
@@ -57,6 +66,7 @@ vertical (shell|terminal):
 
 # XXX - like also need to match the generic talon commands (snap?)
 shuffle <number_small>:  user.system_command("i3-msg move container to workspace {number_small}")
+
 shuffle ten: user.system_command("i3-msg move container to workspace 10")
 shuffle (parent|all) <number_small>: 
     user.system_command("i3-msg focus parent")
@@ -66,6 +76,16 @@ shuffle left: user.system_command("i3-msg move left")
 shuffle right: user.system_command("i3-msg move right")
 shuffle up: user.system_command("i3-msg move up")
 shuffle down: user.system_command("i3-msg move down")
+
+
+# move a window to a workspace and follow it there
+follow <number_small>:
+    user.system_command("i3-msg move container to workspace {number_small}")
+    user.system_command("i3-msg workspace {number_small}")
+
+follow ten: 
+    user.system_command("i3-msg move container to workspace 10")
+    user.system_command("i3-msg workspace 10")
 
 # multi-monitor commands
 # NOTE: these are flipped on purpose, because I have to trick the talon monitor
@@ -103,9 +123,16 @@ new scratch (shell|window):
 i three reload: user.system_command("i3-msg reload")
 i three restart: user.system_command("i3-msg restart")
 
+
+##
+# Marks
+##
 (win|window) mark <user.word>: 
     user.system_command("i3-msg mark {word}")
 (win|window) clear marks: 
     user.system_command("i3-msg unmark")
 (win|window) focus [mark] <user.word>: 
     user.system_command("i3-msg [con_mark=\"{word}\"] focus")
+(win|window) focus alert:
+    user.system_command("i3-msg [urgent=latest] focus")
+(win|window) show marks: user.system_command_nb('bash -c "notify-send.sh -- \'$(python /home/aa/scripts/i3/i3-print-window-marks.py)\'"')

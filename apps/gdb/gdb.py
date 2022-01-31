@@ -104,9 +104,11 @@ class UserActions:
     def debugger_enable_breakpoint_id(number_small: int):
         actions.insert(f"enable br {number_small}\n")
 
-    def pop():
-        """Optional way of pressing enter via pop sound"""
-        actions.key("enter")
+# XXX - Now that I'm using pop again with control mouse, this becomes pretty
+# annoying, so need to rely on quick actions instead...
+#    def pop():
+#        """Optional way of pressing enter via pop sound"""
+#        actions.key("enter")
 
     def debugger_backtrace():
         actions.auto_insert("bt\n")
@@ -125,6 +127,14 @@ class UserActions:
         actions.insert("x/10i ")
         # Type inspection
 
+    # XXX - Technically this should just be part of generic_debugger.talon
+    # since it will follow the same pattern for all debuggers?
+    def debugger_disassemble_clipboard():
+        actions.insert("x/10i ")
+        actions.edit.paste()
+        actions.key("enter")
+
+        # Type inspection
     def debugger_dump_ascii_string():
         actions.insert("x/s ")
 
@@ -137,10 +147,12 @@ class UserActions:
         actions.key("enter")
 
     def debugger_show_binary_sections():
-        actions.user.paste("maintenance info sections\n")
+        actions.user.paste("maintenance info sections")
+        actions.key("enter")
 
     def debugger_show_memory_sections():
-        actions.user.paste("info proc mappings\n")
+        actions.user.paste("info proc mappings")
+        actions.key("enter")
 
     def debugger_access_register(register:str):
         actions.user.paste(f"${register}")

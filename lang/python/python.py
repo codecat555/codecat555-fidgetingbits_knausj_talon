@@ -26,12 +26,19 @@ ctx.lists["user.code_functions"] = {
 }
 
 ctx.lists["user.code_libraries"] = {
+    "a sink": "asyncio",
+    "arg parse": "argparse",
+    "bin ask E": "bitascii",
     "click": "click",
     "docker": "docker",
     "funk tools": "functools",
     "get pass": "getpass",
+    "hash lib": "hashlib",
+    "heck stump": "hexdump",
     "import lib": "importlib",
     "jason": "json",
+    "logging": "logging",
+    "multiprocessing": "multiprocessing",
     "os": "os",
     "path lib": "pathlib",
     "pea expect": "pexpect",
@@ -39,19 +46,17 @@ ctx.lists["user.code_libraries"] = {
     "random": "random",
     "reg ex": "re",
     "shell utils": "shutil",
+    "socket": "socket",
     "string": "string",
     "struct": "struct",
+    "subprocess": "subprocess",
     "system": "sys",
     "tar file": "tarfile",
+    "threading": "threading",
     "time": "time",
     "trace back": "traceback",
     "unit test": "unittest",
     "warnings": "warnings",
-    "a sink": "asyncio",
-    "threading": "threading",
-    "subprocess": "subprocess",
-    "multiprocessing": "multiprocessing",
-    "logging": "logging",
 }
 
 
@@ -76,7 +81,7 @@ docstring_fields = {
 mod.list("python_docstring_fields", desc="python docstring fields")
 ctx.lists["user.python_docstring_fields"] = docstring_fields
 
-type_list = {
+ctx.lists["user.code_type"] = {
     "boolean": "bool",
     "integer": "int",
     "string": "str",
@@ -94,9 +99,6 @@ type_list = {
     "list": "List",
     "no return": "NoReturn",
 }
-
-mod.list("python_type_list", desc="python types")
-ctx.lists["user.python_type_list"] = type_list
 
 exception_list = [
     "BaseException",
@@ -192,10 +194,6 @@ def python_docstring_fields(m) -> str:
 
 @ctx.action_class("user")
 class UserActions:
-    def code_operator_indirection():           actions.auto_insert('')
-    def code_operator_address_of():            actions.auto_insert('')
-    def code_operator_structure_dereference(): actions.auto_insert('')
-    def code_operator_lambda():                actions.auto_insert('')
     def code_operator_subscript():
         actions.insert('[]')
         actions.key('left')
@@ -229,10 +227,11 @@ class UserActions:
     def code_operator_bitwise_left_shift_assignment():   actions.auto_insert(' <<= ')
     def code_operator_bitwise_right_shift():             actions.auto_insert(' >> ')
     def code_operator_bitwise_right_shift_assignment():  actions.auto_insert(' >>= ')
-    def code_self():                                     actions.auto_insert('self')
-    def code_null():                                     actions.auto_insert('None')
-    def code_is_null():                                  actions.auto_insert(' is None')
-    def code_is_not_null():                              actions.auto_insert(' is not None')
+    def code_self():                                actions.auto_insert('self')
+    def code_operator_object_accessor():                 actions.auto_insert('.')
+    def code_insert_null():                                     actions.auto_insert('None')
+    def code_insert_is_null():                                  actions.auto_insert(' is None')
+    def code_insert_is_not_null():                              actions.auto_insert(' is not None')
     def code_state_if():
         actions.insert('if :')
         actions.key('left')
@@ -243,11 +242,11 @@ class UserActions:
         actions.insert('else:')
         actions.key('enter')
     def code_state_switch():
-        actions.insert('switch ()')
+        actions.insert('match :')
         actions.edit.left()
     def code_state_case():
-        actions.insert('case \nbreak;')
-        actions.edit.up()
+        actions.insert('case :')
+        actions.edit.left()
     def code_state_for(): actions.auto_insert('for ')
     def code_state_for_each():
         actions.insert('for in ')
@@ -258,20 +257,14 @@ class UserActions:
     def code_state_while():
         actions.insert('while :')
         actions.edit.left()
-    def code_type_class(): actions.auto_insert('class ')
+    def code_define_class(): actions.auto_insert('class ')
     def code_import():     actions.auto_insert('import ')
-    def code_from_import():
-        actions.insert('from import ')
-        actions.key('left')
-        actions.edit.word_left()
-        actions.key('space')
-        actions.edit.left()
-    def code_comment(): actions.auto_insert('# ')
+    def code_comment_line_prefix(): actions.auto_insert('# ')
     def code_state_return():
         actions.insert('return ')
-    def code_true():            actions.auto_insert('True')
-    def code_false():           actions.auto_insert('False')
-    def code_document_string(): actions.user.insert_cursor('"""[|]"""')
+    def code_insert_true():            actions.auto_insert('True')
+    def code_insert_false():           actions.auto_insert('False')
+    def code_comment_documentation(): actions.user.insert_cursor('"""[|]"""')
     def code_insert_function(text: str, selection: str):
         if selection:
             text = text + "({})".format(selection)
@@ -308,6 +301,12 @@ class UserActions:
     def code_insert_library(text: str, selection: str):
         actions.user.paste(f"import {text}")
 
+    def code_insert_type_annotation(type: str):
+        actions.insert(f": {type}")
+
+    def code_insert_return_type(type: str):
+        actions.insert(f" -> {type}")
+
 
 @mod.action_class
 class module_actions:
@@ -332,3 +331,26 @@ class module_actions:
         s = text1 + clip.get() + text2
         actions.insert(s)
         actions.key(f"left:{len(s) - end_pos}")
+
+    # Non overrides
+    def assign_variable(text: str):
+        """Assign to a variable"""
+        # XXX - This should use a variable naming formatter
+        result = actions.user.formatted_text(
+            text, settings.get("user.code_private_function_formatter")
+        )
+
+        actions.user.paste(result)
+        actions.user.code_operator_assignment()
+
+
+    # Non overrides
+    def append_variable(text: str):
+        """Append to a variable"""
+        # XXX - This should use a variable naming formatter
+        result = actions.user.formatted_text(
+            text, settings.get("user.code_private_function_formatter")
+        )
+
+        actions.user.paste(result)
+        actions.user.code_operator_addition_assignment()

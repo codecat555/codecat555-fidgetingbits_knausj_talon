@@ -8,7 +8,8 @@ mod = Module()
 mod.list("abbreviation", desc="Common abbreviation")
 
 ctx = Context()
-ctx.lists["user.abbreviation"] = {
+abbreviations = {
+    "abort": "abrt",
     "address": "addr",
     "administrator": "admin",
     "administrators": "admins",
@@ -16,6 +17,7 @@ ctx.lists["user.abbreviation"] = {
     "advanced": "adv",
     "alberta": "ab",
     "alternative": "alt",
+    "apple": "appl",
     "application": "app",
     "applications": "apps",
     "argument": "arg",
@@ -76,10 +78,13 @@ ctx.lists["user.abbreviation"] = {
     "decrement": "dec",
     "debug": "dbg",
     "debian": "deb",
+    "decimal": "dec",
     "define": "def",
     "definition": "def",
     "delete": "del",
     "description": "desc",
+    "dest": "dst",
+    "destination": "dest",
     "develop": "dev",
     "development": "dev",
     "device": "dev",
@@ -89,6 +94,7 @@ ctx.lists["user.abbreviation"] = {
     "direction": "dir",
     "directory": "dir",
     "directories": "dirs",
+    "display": "disp",
     "distribution": "dist",
     "document": "doc",
     "documents": "docs",
@@ -98,6 +104,7 @@ ctx.lists["user.abbreviation"] = {
     "duplicate": "dup",
     "dynamic": "dyn",
     "elastic": "elast",  # elastdocker, elastalert, etc
+    "element": "elem",
     "encode": "enc",
     "end of day": "eod",
     "end of month": "eom",
@@ -121,6 +128,7 @@ ctx.lists["user.abbreviation"] = {
     "eye three": "i3",
     "eye dent": "id",
     "eye low": "ilo",
+    "eye octal": "ioctl",
     "file system": "fs",
     "fingerprint": "fp",
     "framework": "fw",
@@ -135,7 +143,6 @@ ctx.lists["user.abbreviation"] = {
     "hardware": "hw",
     "header": "hdr",
     "hello": "helo",
-    "hi": "o/",
     "history": "hist",
     "hypertext": "http",
     "identity": "id",
@@ -147,8 +154,10 @@ ctx.lists["user.abbreviation"] = {
     "information": "info",
     "initialize": "init",
     "initializer": "init",
+    "inode": "ino", 
     "in real life": "irl",
     "instance": "inst",
+    "instruction": "insn",
     "integer": "int",
     "interrupt": "int",
     "iterate": "iter",
@@ -170,9 +179,11 @@ ctx.lists["user.abbreviation"] = {
     "length": "len",
     "lib see": "libc",
     "library": "lib",
+    "lisp": "lsp",
     "lycanthrope": "lycan",
     "mail": "smtp",
     "make": "mk",
+    "manager": "mgr",
     "manitoba": "mb",
     "markdown": "md",
     "memory": "mem",
@@ -202,6 +213,7 @@ ctx.lists["user.abbreviation"] = {
     "operating system": "os",
     "original": "orig",
     "package": "pkg",
+    "packet": "pkt",
     "parameter": "param",
     "parameters": "params",
     "password": "passwd",
@@ -221,12 +233,14 @@ ctx.lists["user.abbreviation"] = {
     "processor": "cpu",
     "program": "prog",
     "property": "prop",
+    "protocol": "proto",
     "public": "pub",
     "python": "py",
     "quebec": "qc",
     "query string": "qs",
     "random": "rnd",
     "receipt": "rcpt",
+    "receive": "recv",
     "record": "rec",
     "recording": "rec",
     "reference": "ref",
@@ -246,11 +260,17 @@ ctx.lists["user.abbreviation"] = {
     "return": "ret",
     "revision": "rev",
     "ruby": "rb",
+    "samba": "smb",
+    "samba D": "smbd",
     "saskatchewan": "sk",
     "see": "C",
+    "send": "snd",
     "sequel": "sql",
     "sequence": "seq",
     "segment": "seg",
+    "semaphore": "sem",
+    "schedule": "sched",
+    "scheduler": "sched",
     "screen": "scr",
     "scuzzy": "scsi",
     "samba": "smb",
@@ -307,6 +327,7 @@ ctx.lists["user.abbreviation"] = {
     "verify": "vrfy",
     "version": "ver",
     "versus": "vs",
+    "virtual": "virt",
     "virtual machine": "vm",
     "visual": "vis",
     "visual studio": "msvc",
@@ -318,8 +339,9 @@ ctx.lists["user.abbreviation"] = {
     "windows kernel": "ntoskrnl",
 }
 
+ctx.lists["user.abbreviation"] = abbreviations
 
-@mod.capture(rule="{user.abbreviation}")
+@mod.capture(rule="brief {user.abbreviation}")
 def abbreviation(m) -> str:
     "One abbreviation"
     return m.abbreviation

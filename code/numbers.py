@@ -1,7 +1,8 @@
 from typing import Iterator, List, Optional, Union
 
-from talon import Context, Module, actions
+from talon import Context, Module, actions, clip
 
+import ast
 mod = Module()
 ctx = Context()
 
@@ -12,6 +13,8 @@ scales = "hundred thousand million billion trillion quadrillion quintillion sext
 
 digits_map = {n: i for i, n in enumerate(digits)}
 digits_map["oh"] = 0
+# For stuff where we definitely don't want to match on "oh"
+digits_strict_map = {n: i for i, n in enumerate(digits)}
 teens_map = {n: i + 10 for i, n in enumerate(teens)}
 tens_map = {n: 10 * (i + 2) for i, n in enumerate(tens)}
 scales_map = {n: 10 ** (3 * (i+1)) for i, n in enumerate(scales[1:])}
@@ -159,25 +162,32 @@ def split_list(value, l: list) -> Iterator:
 
 # ---------- CAPTURES ----------
 alt_digits = "(" + ("|".join(digits_map.keys())) + ")"
+alt_digits_strict = "(" + ("|".join(digits_strict_map.keys())) + ")"
 alt_teens = "(" + ("|".join(teens_map.keys())) + ")"
 alt_tens = "(" + ("|".join(tens_map.keys())) + ")"
 alt_scales = "(" + ("|".join(scales_map.keys())) + ")"
 number_word = "(" + "|".join(numbers_map.keys()) + ")"
+# don't allow numbers to start with scale words like "hundred", "thousand", etc
+leading_words = numbers_map.keys() - scales_map.keys()
+leading_words -= {'oh', 'o'} # comment out to enable bare/initial "oh"
+number_word_leading = f"({'|'.join(leading_words)})"
 
 # TODO: allow things like "double eight" for 88
 @ctx.capture("digit_string", rule=f"({alt_digits} | {alt_teens} | {alt_tens})+")
 def digit_string(m) -> str:
     return parse_number(list(m))
 
+#@ctx.capture("digit_strict_string", rule=f"({alt_digits_strict} | {alt_teens} | {alt_tens})+")
+#def digit_strict_string(m) -> str:
+#    return parse_number(list(m))
+
+
 @ctx.capture("digits", rule="<digit_string>")
 def digits(m) -> int:
     """Parses a phrase representing a digit sequence, returning it as an integer."""
     return int(m.digit_string)
 
-# XXX - need to clarify when a scale number is used in only match on and. I
-# often run into something like numb two one three getting parsed as two and
-# three, which results in 23 which should just never match that way
-@mod.capture(rule=f"{number_word}+ (and <numbers_small>+)*")
+@mod.capture(rule=f"{number_word_leading} ([and] {number_word})*")
 def number_string(m) -> str:
     """Parses a number phrase, returning that number as a string."""
     return parse_number(list(m))
@@ -201,14 +211,17 @@ def number_signed(m):
 def number_small(m):
     return int(parse_number(list(m)))
 
-
 @mod.action_class
 class Actions:
     def count_numbers(num1: int, num2: int):
         """return a counted series of numbers"""
         s = ""
-        for n in range(num1, num2 + 1):
-            s += f"{n} "
+        if num1 > num2:
+            for n in range(num1, num2 - 1, -1):
+                s += f"{n} "
+        else:
+            for n in range(num1, num2 + 1):
+                s += f"{n} "
         actions.insert(s)
 
     def escape_hex_string(hex_letters: str):
@@ -222,3 +235,24 @@ class Actions:
                 s += f"\\x{hex_letters[idx:idx+2]}"
             idx += 2
         actions.insert(s)
+
+    def convert_number_to_hex(number: str):
+        """convert a number string to hex value"""
+        val = int(number)
+        actions.insert(f"{val:#x}")
+
+    def convert_number_to_escaped_hex(number: str):
+        """convert a number string to hex value"""
+        val = int(number)
+        # XXX - This is wrong because it doesn't correctly handle endian
+        # conversion atm. So 300 becomes \x12\x0c instead of \x2c\x01
+        actions.user.escape_hex_string(f"{val:#x}"[2:])
+
+    def paste_clipboard_as_hex():
+        """convert and paste the number in the clipboard to hexadecimal"""
+        actions.user.paste(f"{int(clip.text()):#x}")
+
+
+    def paste_clipboard_as_dec():
+        """convert and paste the number in the clipboard to decimal"""
+        actions.user.paste(ast.literal_eval(clip.text()))

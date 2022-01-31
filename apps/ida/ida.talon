@@ -1,8 +1,7 @@
 # A lot of this was taken from the fireeye voiceattackprofile, under the
 # assumption either people might already be familiar with the commands
 # https://fireeye.github.io/IDA_Pro_VoiceAttack_profile/Reference_sheet.html
-# XXX - remove the mode
-mode: user.ida
+app: ida
 -
 tag(): user.ida
 tag(): user.disassembler
@@ -74,3 +73,18 @@ toggle opcodes:
     user.ida_open_general_options()
     key(alt-d)
     user.accept_change()
+
+##
+# Decompiler
+##
+
+collapse: key(keypad_minus)
+expand: key(keypad_plus)
+
+
+##
+# Misc
+##
+
+[book] marks show: key(ctrl-m)
+[book] mark new : key(alt-m)

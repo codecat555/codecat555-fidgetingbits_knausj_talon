@@ -26,6 +26,11 @@
 #  - test on windows and mac
 #  - everything in this files should technically use _exterm() version of
 #    functions
+#
+# BUGS:
+#  - With sending the command-line mode commands in the background via RPC we
+#  miss out on the display of some features. Ex: ALEInfo becomes unreadable...
+#  need to figure out how to fix this.
 
 app: vim
 app: /.*/
@@ -62,6 +67,8 @@ tag(): user.vim_unicode
 tag(): user.vim_wiki
 tag(): user.vim_you_are_here
 tag(): user.vim_zoom
+tag(): user.vim_zenmode
+tag(): user.vim_lsp
 
 
 # To the settings below dictate how certain parts of Talon VIM will work. You
@@ -203,6 +210,7 @@ scroll bottom reset cursor: user.vim_normal_mode_exterm("z ")
 ###
 (buf|buffer) list: user.vim_command_mode_exterm(":ls\n")
 (buf|buffer) (close|delete) <number_small>: user.vim_command_mode_exterm(":bd {number_small} ")
+(buf|buffer) delete: user.vim_command_mode_exterm(":bd ")
 (buf|buffer) close current: user.vim_command_mode_exterm(":bd\n")
 (buf|buffer) close last: user.vim_command_mode_exterm(":bd #\n")
 (buf|buffer) force close: user.vim_command_mode_exterm(":bd!\n")
@@ -347,26 +355,6 @@ spliff:
     user.vim_set_normal_mode_exterm()
     key(ctrl-w)
     key(h)
-
-# split top left
-splot:
-    user.vim_set_normal_mode_exterm()
-    key(ctrl-w)
-    key(t)
-
-# split bottom left
-splunk:
-    user.vim_set_normal_mode_exterm()
-    key(ctrl-w)
-    key(t)
-    key(ctrl-w)
-    key(j)
-
-sprot:
-    user.vim_set_normal_mode_exterm()
-    key(ctrl-w)
-    key(b)
-
 
 # moving windows
 split (only|exclusive):
@@ -556,7 +544,7 @@ set file format unix:
 # Marks
 ###
 # TODO - need to fix this "True" for terminal return stuff
-mark (new|create) <user.letter>:
+mark (add|new|create) <user.letter>:
     user.vim_normal_mode_exterm_keys("m {letter}", "True")
 
 mark global [(new|create)] <user.upper_letter>:
@@ -590,6 +578,8 @@ session force save: user.vim_command_mode_exterm(":mksession! ")
 session load: user.vim_command_mode_exterm(":source ~/.vim/sessions/")
 
 
+# XXX - this is quite slow pasting into a terminal, so might want to move
+# this register into the paste register and then use the native?
 (paste from|pastor) [register] <user.unmodified_key>: user.vim_any_motion_mode_exterm('"{unmodified_key}p')
 
 
@@ -731,7 +721,7 @@ messages extract:
 ###
 # Convenience
 ###
-force last:
+command force:
     user.vim_command_mode_exterm(":")
     key(up !)
 
@@ -759,3 +749,6 @@ paste as line:
     user.vim_command_mode_exterm(":let @+=substitute(strtrans(@+),'\\^@',' ','g')\n")
     sleep(200ms)
     edit.paste()
+
+file make:
+    user.vim_normal_mode(":!make\n")

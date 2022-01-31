@@ -26,8 +26,9 @@ stellaris session:
 ###
 #
 ###
-fine merge conflict:
-    user.vim_command_mode_exterm(":/\\c<<<\n")
+find merge conflict:
+    # XXX - This was originally command mode, but fails for some reason
+    user.vim_normal_mode_exterm(":/<<<\n")
 
 dick to class member:
     user.vim_normal_mode("ds[ds\"i.")
@@ -85,6 +86,11 @@ convert string to stack:
     user.vim_command_mode(":call String_to_stack_buffer()")
     edit.left()
 
-
 toggle (debug|verbose) log:
     user.vim_command_mode(":call ToggleVerbose()\n")
+
+toggle (warnings|errors) on:
+    user.vim_command_mode(":lua vim.diagnostic.show()\n")
+
+toggle (warnings|errors) off:
+    user.vim_command_mode(":lua vim.diagnostic.hide()\n")

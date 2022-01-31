@@ -16,18 +16,23 @@ arch_linux_paths = { "packman hooks": "/etc/pacman.d/hooks/",}
 linux_folder_paths = {
     "user services": "~/.config/systemd/user/",
     "services": "/etc/systemd/system/",
+    "you dev rules": "/etc/udev/rules.d/",
     "vim sessions": "~/.vim/sessions/",
     "vim plugins": "~/.vim/plugged/",
     "temp": "/tmp/",
     "config": "/etc/",
     "it see": "/etc/",
+    "bin": "/bin/",
+    "S bin": "/sbin/",
     "user": "/usr/",
     "user bin": "/usr/bin/",
+    "user S bin": "/usr/bin/",
     "user lib": "/usr/lib/",
     "user lib debug": "/usr/lib/debug",
     "user src": "/usr/src/",
     "user local": "/usr/local/",
     "user local bin": "/usr/local/bin/",
+    "user local S bin": "/usr/local/bin/",
     "user local lib": "/usr/local/lib/",
     "user local config": "/usr/local/etc/",
     "lib": "/lib",
@@ -39,6 +44,8 @@ linux_folder_paths = {
     "vim snippets": "~/.vim/plugged/vim-snippets/UltiSnips/",
     "talon": f"~/.talon/user/{TALON_REPO}/",
     "back": "../",
+    "tunnel": "~/.ssh/",
+    "S S H": "~/.ssh/",
 
     # ubuntu-esque stuff
     "lib linux": "/lib/x86_64-linux-gnu/",
@@ -63,6 +70,7 @@ linux_file_paths = {
     "journal config": "/etc/systemd/journald.conf", 
     "tunnel config": "~/.ssh/config", 
     "shell config": "~/.zshrc", 
+    "git config": ".git/config", 
     "poly bar": "~/.config/polybar/config", 
     "eye three": "~/.i3/config", 
     "config": "~/.vimrc", 
@@ -70,6 +78,7 @@ linux_file_paths = {
     "mark down snippets": "~/.vim/plugged/vim-snippets/UltiSnips/markdown.snippets",
     "python snippets": "~/.vim/plugged/vim-snippets/UltiSnips/python.snippets",
     "bash snippets": "~/.vim/plugged/vim-snippets/UltiSnips/bash.snippets",
+    "bash snippets": "~/.config/kitty/kitty.conf",
 }
 
 # this is used for specific commands like pivot

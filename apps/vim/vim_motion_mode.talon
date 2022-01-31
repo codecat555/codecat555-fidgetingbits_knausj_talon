@@ -65,18 +65,27 @@ sage:
 file save as:
     key(escape)
     user.vim_command_mode(":w ")
+# XXX - This should be vim_command_mode, but there's a bug in at lest
+# vim-fugitive commit where you lose the commit text if called from INSERT
+# mode, due to an unmodifiable buffer error
 (file save and (quit|close)|squeak):
-    user.vim_command_mode(":wq\n")
+    user.vim_normal_mode(":wq\n")
 file (close|quite):
     user.vim_command_mode(":q\n")
 file (refresh|reload):
     user.vim_command_mode(":e!\n")
+file show:
+    user.vim_normal_mode_keys("ctrl-G")
 (print working directory|folder show): user.vim_command_mode(":pwd\n")
 pivot file:
     user.vim_command_mode(":lcd %:p:h\n")
-    #pivot (parent|back):
-    #    user.vim_command_mode(":lcd ..\n")
-pivot select:
+pivot clip:
+    user.vim_command_mode(":lcd ")
+    edit.paste()
+    key(enter)
+#pivot (parent|back):
+#    user.vim_command_mode(":lcd ..\n")
+pivot [select]:
     user.vim_command_mode(":lcd ")
 # Note below includes pivot back
 pivot <user.folder_paths>:
@@ -90,6 +99,8 @@ file recover:
 # For when the VIM cursor is hovering on a path
 # NOTE: gx only works if you use netrw were custom mapped
 #open [this] link: user.vim_normal_mode("gx")
+# XXX - this is broken if the link has some special characters like #, it will
+# replace with the act of buffer name
 open [this] link:
     user.vim_command_mode(":!xdg-open ")
     key(ctrl-r ctrl-a enter)
@@ -126,14 +137,10 @@ taggy back: user.vim_normal_mode_key("ctrl-t")
 ###
 
 # indenting
-# XXX - are temporarily disabled for speed testing
-# indent [line] <number> through <number>$:
-#     user.vim_command_mode(":{number_1},{number_2}>\n")
-# unindent [line] <number> through <number>$:
-#     user.vim_command_mode(":{number_1},{number_2}>\n")
-# XXX - double check against slide right/left
-(shift|indent) right: user.vim_normal_mode(">>")
-(shift|indent) left: user.vim_normal_mode("<<")
+indent [line] <number> through <number>$:
+    user.vim_command_mode(":{number_1},{number_2}>\n")
+unindent [line] <number> through <number>$:
+    user.vim_command_mode(":{number_1},{number_2}>\n")
 
 change remaining line: user.vim_normal_mode_key("C")
 change line: user.vim_normal_mode("cc")
@@ -228,10 +235,12 @@ yank line <number>$:
 #(duplicate|paste) lines <number> through <number>$:
 #     user.vim_command_mode(":{number_1},{number_2}y\n")
 #     user.vim_command_mode("p")
-(duplicate|paste) line <number>$:
+bring line <number>$:
     user.vim_command_mode(":{number}y\n")
     user.vim_normal_mode("p")
-(dup|duplicate) line: user.vim_normal_mode_np("Yp")
+#(dup|duplicate) line: 
+#    user.vim_normal_mode_np("yy")
+#    user.vim_normal_mode_np("p")
 
 
 paste below:
@@ -257,25 +266,25 @@ push it:
     key(escape p)
 
 # insert at the end of the current word
-jam:
+jammie:
     user.vim_normal_mode_np("ea")
-jam <user.unmodified_key>:
+jammie <user.unmodified_key>:
     user.vim_normal_mode_np("ea")
     key("{unmodified_key}")
 
-chomp:
+chompie:
     user.vim_normal_mode_np("ex")
 
 insert <user.text>:
     user.vim_insert_mode("{text}")
 
 # helpful for fixing typos or bad lexicons that miss a character
-(inject|cram) <user.unmodified_key> [before]:
+(inject|crammie) <user.unmodified_key> [before]:
     user.vim_insert_mode_key("{unmodified_key}")
     # since there is no ctrl-o equiv coming from normal
     key(escape)
 
-(inject|cram) <user.unmodified_key> after:
+(inject|crammie) <user.unmodified_key> after:
     user.vim_normal_mode_key("a {unmodified_key}")
     # since we can't perserve mode with ctrl-o
     key(escape)
@@ -417,6 +426,8 @@ jump last line: user.vim_normal_mode("''")
 ###
 # QuickFix list
 ###
+# XXX - Would be nice to be able to determine if the quickness is actually
+# open, and only enable the navigation commands if so...
 vim grep:
     user.vim_command_mode(":vimgrep // **")
     key(left:4)
@@ -424,13 +435,14 @@ vim real grep:
     user.vim_command_mode(":grep -r  *")
     key(left:2)
 quick [fix] next: user.vim_command_mode(":cn\n")
-quick [fix] (back|last|prev|previous): user.vim_command_mode(":cp\n")
+quick [fix] (back|prev|previous): user.vim_command_mode(":cp\n")
 quick [fix] (show|hide): user.vim_command_mode(":cw\n")
 quick [fix] close: user.vim_command_mode(":ccl\n")
 quick [fix] files:
     user.vim_command_mode(':cexpr system("fd -g \'*.py\' .")')
     key(left:3)
-    # XXX - top?
+
+quick [fix] top: user.vim_command_mode(":cc 1\n")
 quick [fix] bottom: user.vim_command_mode(":cbo\n")
 quick [fix] do:
     user.vim_command_mode(":cdo | update")
@@ -507,59 +519,59 @@ find (reversed|previous) <user.ordinals> <user.unmodified_key>:
 # Visual Text Selection
 ###
 make ascending: user.vim_normal_mode_key("g ctrl-a")
-(take|light|highlight) line: user.vim_visual_mode("V")
-block (light|highlight): user.vim_any_motion_mode_exterm_key("ctrl-v")
+(paint|light|highlight) line: user.vim_visual_mode("V")
+block (paint|light|highlight): user.vim_any_motion_mode_exterm_key("ctrl-v")
 
-(take|light|highlight) <user.vim_motions>:
+(paint|light|highlight) <user.vim_motions>:
     user.vim_visual_mode("{vim_motions}")
-block (take|light|highlight) <user.vim_motions>:
+block (paint|light|highlight) <user.vim_motions>:
     user.vim_visual_block_mode("{vim_motions}")
 
-(take|light|highlight) lines <number> through <number>:
+(paint|light|highlight) lines <number> through <number>:
     user.vim_normal_mode_np("{number_1}G")
     user.vim_set_visual_mode()
     insert("{number_2}G")
 
-block (take|light|highlight) lines <number> through <number>:
+block (paint|light|highlight) lines <number> through <number>:
     user.vim_normal_mode_np("{number_1}G")
     user.vim_set_visual_block_mode()
     insert("{number_2}G")
 
-(take|light|highlight) <number_small> lines:
+(paint|light|highlight) <number_small> lines:
     user.vim_set_visual_line_mode()
     insert("{number_small-1}j")
 
-block (take|light|highlight) <number_small> lines:
+block (paint|light|highlight) <number_small> lines:
     user.vim_set_visual_block_mode()
     insert("{number_small-1}j")
 
-(take|light|highlight) <number_small> lines at line <number>:
+(paint|light|highlight) <number_small> lines at line <number>:
     user.vim_normal_mode_np("{number}G")
     user.vim_set_visual_line_mode()
     insert("{number_small-1}j")
 
-block (take|light|highlight) <number_small> lines at line <number>:
+block (paint|light|highlight) <number_small> lines at line <number>:
     user.vim_normal_mode_np("{number}G")
     user.vim_set_visual_block_mode()
     insert("{number_small-1}j")
 
-(take|light|highlight) <number_small> above:
+(paint|light|highlight) <number_small> above:
     user.vim_normal_mode_np("{number_small}k")
     user.vim_set_visual_line_mode()
     insert("{number_small-1}j")
 
-block (take|light|highlight) <number_small> above:
+block (paint|light|highlight) <number_small> above:
     user.vim_normal_mode_np("{number_small}k")
     user.vim_set_visual_block_mode()
     insert("{number_small-1}j")
 
-(take|light|highlight) (until|till) line <number>:
+(paint|light|highlight) (until|till) line <number>:
     user.vim_normal_mode_np("m'")
     insert(":{number}\n")
     user.vim_set_visual_line_mode()
     insert("''")
 
-block (take|light|highlight) (until|till) line <number>:
+block (paint|light|highlight) (until|till) line <number>:
     user.vim_normal_mode_np("m'")
     insert(":{number}\n")
     user.vim_set_visual_block_mode()
@@ -568,7 +580,7 @@ block (take|light|highlight) (until|till) line <number>:
 # Greedily highlight whatever is under the cursor. Doesn't work if on the first
 # character of the entry, in which case you should say a normal motion like
 # "light big end", etc
-(take|light) this:
+(paint|light) this:
     user.vim_normal_mode_np("B")
     user.vim_visual_mode("E")
 
@@ -627,7 +639,8 @@ run as sandbox:
 ###
 trim white space: user.vim_normal_mode(":%s/\\s\\+$//e\n")
 (remove all|normalize) tabs: user.vim_normal_mode(":%s/\\t/    /eg\n")
-normalize spaces: user.vim_normal_mode(":%s/\\S\\zs\\s\\+/ /g\n")
+normalize spaces: user.vim_command_mode(":%s/\\S\\zs\\s\\+/ /g\n")
+normalize new lines: user.vim_command_mode(":%s/\r//g\n")
 (delete|trim) empty lines:
     insert(":")
     sleep(100ms)
@@ -664,7 +677,7 @@ first <user.unmodified_key>:
 last <user.unmodified_key>:
     user.vim_normal_mode_np("$F{unmodified_key}")
 
-flop:
+popup clear:
     user.vim_command_mode(":call popup_clear(1)")
 
 yank funk: 

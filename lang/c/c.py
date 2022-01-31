@@ -72,6 +72,7 @@ stdint_types = {
 }
 stdint_signed = {
     "un signed": "u",
+    "unsigned": "u",
 }
 
 stdint_ctx.lists["user.c_types"] = stdint_types
@@ -102,17 +103,36 @@ ctx.lists["user.code_libraries"] = {
     "limits": "limits.h",
     "locale": "locale.h",
     "math": "math.h",
+    "poll": "poll.h",
     "set jump": "setjmp.h",
     "signal": "signal.h",
     "arguments": "stdarg.h",
     "definition": "stddef.h",
     "input": "stdio.h",
+    "standard input": "stdio.h",
+    "standard deaf": "stddef.h",
     "output": "stdio.h",
     "library": "stdlib.h",
+    "standard library": "stdlib.h",
     "string": "string.h",
     "time": "time.h",
     "standard int": "stdint.h",
+    "scheduler": "sched.h",
     "unix standard": "unistd.h",
+    "threading": "pthread.h",
+    "system message": "sys/msg.h",
+    "system I P C": "sys/ipc.h",
+    "system shared memory": "sys/shm.h",
+    "memory management": "sys/mman.h",
+    "system parameters": "sys/param.h",
+    "U name": "sys/utsname.h",
+    "fuse": "fuse.h",
+    "fuse low level": "fuse_lowlevel.h",
+    "file control": "fcntl.h",
+    "F control": "fcntl.h",
+    "password": "pwd.h",
+    "event F D": "sys/eventfd.h",
+    "wait": "sys/wait.h",
 }
 
 ctx.lists["user.code_functions"] = {
@@ -305,9 +325,9 @@ class UserActions:
     def code_operator_bitwise_left_shift_assignment():   actions.auto_insert(' <<= ')
     def code_operator_bitwise_right_shift():             actions.auto_insert(' >> ')
     def code_operator_bitwise_right_shift_assignment():  actions.auto_insert(' >>= ')
-    def code_null():                                     actions.auto_insert('NULL')
-    def code_is_null():                                  actions.auto_insert(' == NULL ')
-    def code_is_not_null():                              actions.auto_insert(' != NULL')
+    def code_insert_null():                                     actions.auto_insert('NULL')
+    def code_insert_is_null():                                  actions.auto_insert(' == NULL ')
+    def code_insert_is_not_null():                              actions.auto_insert(' != NULL')
     def code_state_if():
         actions.insert('if () {\n}\n')
         actions.key('up:2 left:3')
@@ -331,31 +351,10 @@ class UserActions:
     def code_state_return():    actions.auto_insert('return ')
     def code_break():           actions.auto_insert('break;')
     def code_next():            actions.auto_insert('continue;')
-    def code_true():            actions.auto_insert('true')
-    def code_false():           actions.auto_insert('false')
-    def code_type_definition(): actions.auto_insert('typedef ')
-    def code_typedef_struct():
-        actions.insert('typedef struct')
-        actions.insert('{\n\n}')
-        actions.edit.up()
-        actions.key('tab')
-    def code_from_import(): actions.auto_insert('using ')
-    def code_include():     actions.insert('#include ')
-    def code_include_system():
-        actions.insert('#include <>')
-        actions.edit.left()
-    def code_include_local():
-        actions.insert('#include ""')
-        actions.edit.left()
-    def code_comment(): actions.auto_insert('//')
-    def code_block_comment():
-        actions.insert('/*')
-        actions.key('enter')
-        actions.key('enter')
-        actions.insert('*/')
-        actions.edit.up()
-    def code_block_comment_prefix(): actions.auto_insert('/*')
-    def code_block_comment_suffix(): actions.auto_insert('*/')
+    def code_insert_true():            actions.auto_insert('true')
+    def code_insert_false():           actions.auto_insert('false')
+    def code_comment_line_prefix(): actions.auto_insert('//')
+
     def code_insert_function(text: str, selection: str):
         if selection:
             text = text + "({})".format(selection)
@@ -390,6 +389,16 @@ class UserActions:
     def code_insert_library(text: str, selection: str):
         actions.user.paste("#include <{}>".format(selection))
 
+    def code_import():
+        """Inserts an empty include line for the selected library header"""
+        actions.user.paste("include <>")
+        actions.edit.left()
+
+    def code_import_local():
+        """Inserts an empty include line for the selected local header"""
+        actions.user.paste('include ""')
+        actions.edit.left()
+
 
 @mod.action_class
 class Actions:
@@ -402,3 +411,4 @@ class Actions:
         """display next datatype mode"""
         global c_lang_state
         c_lang_state.current_datatype()
+

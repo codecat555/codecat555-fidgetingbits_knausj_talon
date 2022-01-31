@@ -5,12 +5,81 @@ mode: user.terminal
 mode: command
 and tag: terminal
 -
+
+###
+# Shell-specific
+#
+# XXX - this should move to zsh
+###
+# unset this if you use `bindkey -v`
+tag(): user.readline
+
+###
+# Packages
+#
+# These tags correspond to talon grammars you want to enable while you're
+# running some terminal emulator on your system. See the associated talon
+# files for information and links to what tools they are associated with.
+###
+
+#tag(): user.buku
+tag(): user.yay
+#tag(): user.apt
+#tag(): user.ghidra_server
+#tag(): user.nmcli
+#tag(): user.taskwarrior
+#tag(): user.timewarrior
+tag(): user.make
+#tag(): user.tmux
+tag(): user.git
+tag(): user.docker
+tag(): user.service_manager
+tag(): user.package_manager
+tag(): user.timer_manager
+tag(): user.systemd
+tag(): user.pulse_audio
+tag(): user.virsh
+tag(): user.iptables
+#tag(): user.npm
+#tag(): user.meson
+
+#tag(): user.kubectl
+
+
+# Shell commands
+
+run last [command]:
+    key(up)
+    key(enter)
+run last script:
+    insert("./")
+    key(up)
+    key(enter)
+rerun <user.text>:
+    key(ctrl-r)
+    insert(text)
+rerun list:
+    key(ctrl-r)
+rerun last command:
+    key(! ! enter enter)
+rerun last <user.word>:
+    key(!)
+    insert(word)
+    key(enter)
+kill all:
+    key(ctrl-c)
+
 file list: "ls "
+file bare list: "ls --no-icons "
 file (list here|lisa): "ls -l\n"
+file bare (list here|lisa): "ls -l --no-icons\n"
+file size: "ls -lh "
 file list long: "ls -al "
 file (list long here|lily): "ls -al\n"
-file list latest: "ls -Art | tail -n1\n"
+file list latest: "exa --sort latest --no-icons | tail -n1\n"
 file list folders: "ls -d */\n"
+file strings: "strings "
+file (tail|follow): "tail -f "
 
 # find command
 file find all links: "find . -maxdepth 1 -type l  -ls\n"
@@ -18,16 +87,20 @@ file find all folders: "find . -maxdepth 1 -type d  -ls\n"
 file fine all files: "find . -maxdepth 1 -type f  -ls\n"
 
 # TODO - revisit the grammar for $() commands
-call file latest: "$(ls -Art | tail -n1)"
+call file latest: "$(exa --sort latest --no-icons | tail -n1)\n"
 
 # TODO - somehow make this scriptable to print anything
-file edit latest: "edit $(ls -Art | tail -n1)\n"
-file latest: "$(ls -Art | tail -n1)"
+file edit latest: "edit $(exa --sort latest --no-icons | tail -n1)\n"
+file latest: "$(exa --sort latest --no-icons | tail -n1)"
 file link: "ln -s "
 file link force: "ln -sf "
 file hard link: "ln "
-file broken links:  
+file broken links:
     insert("find . -type l -exec sh -c 'file -b \"$1\" | grep -q ^broken' sh /{} \\; -print")
+file find excluding with depth:
+    user.insert_cursor("find . -mindepth 2 -maxdepth 2 -type d '!' -exec sh -c 'ls -1 \"{}\"|egrep -i -q \"^*.[|]$\"' ';' -print")
+file find excluding:
+    user.insert_cursor("find . -type d '!' -exec sh -c 'ls -1 \"{}\"|egrep -i -q \"^*.[|]$\"' ';' -print")
 file move: "mv "
 file open: "vim "
 file touch: "touch "
@@ -46,18 +119,21 @@ file disk image copy: user.insert_cursor("dd bs=4M if=[|] of=/dev/sdX conv=fsync
 (file|folder) real deep remove: "/bin/rm -rIf "
 file diff: "diff "
 # find
-file find: "find . -name "
+file find: 
+    user.insert_cursor("find . -name \"[|]\" 2>/dev/null")
+# case insensitive fuzzy find
 file fuzzy [find]:
-    insert("find . -name \"**\"")
-    key("left")
-    key("left")
+    user.insert_cursor("find . -iname \"*[|]*\" 2>/dev/null")
 file fuzzy [find] today:
-    insert("find . -mtime -1 -name \"**\"")
-    key("left")
-    key("left")
+    user.insert_cursor("find . -mtime -1 -name \"*[|]*\" 2>/dev/null")
 
 file hash: "sha256sum "
+file check sec: "checksec --file="
 file locate: "locate "
+file [full] path: "readlink -f "
+
+file tree permission: "tree -pufid "
+
 
 file edit read me: insert("edit README.md\n")
 file edit make file: insert("edit Makefile\n")
@@ -67,7 +143,7 @@ file [disk] usage all: "du -sh *\n"
 trash list: "trash-list\n"
 trash restore: "trash-restore "
 trash empty: "trash-empty "
-file watch latest: "vlc $(ls -Art | tail -n1)"
+file watch latest: "vlc $(exa --sort latest --no-icons | tail -n1)"
 
 echo param <user.text>: 
     insert("echo ${")
@@ -100,7 +176,7 @@ pivot next:
     insert("ls\n")
 
 pivot (last|flip): "cd -\n"
-pivot latest: "cd $(ls -Art | tail -n1)\n"
+pivot latest: "cd $(exa --sort latest --no-icons | tail -n1)\n"
 
 
 folder remove: "rmdir "
@@ -153,11 +229,12 @@ now grep:
     insert("| grep -i ")
 
 # networking
-net (interfaces|I P): "ip addr\n"
+net (interfaces|I P|address): "ip addr\n"
 net (route|routes): "ip route\n"
 net route add: user.insert_cursor("ip route add [|] dev ")
 net route add tunnel: user.insert_cursor("ip route add [|] dev tun0")
 net route (remove|delete|drop): "ip route del"
+# XXX - We should switch these to use ss
 net stat all: "netstat --sctp -anutp\n"
 net [stat] (listen|listening) unix: "netstat --sctp -anutp\n"
 net [stat] (listen|listening) T C P: "netstat --tcp -nlp\n"
@@ -182,13 +259,15 @@ net my I P: "dig +short myip.opendns.com @resolver1.opendns.com\n"
 net port <user.ports>: "{ports}"
 net dump: "tcpdump "
 
+net bridge (list|show): "brctl show\n"
+
 
 show hosts file: "cat /etc/hosts\n"
 edit hosts file: "sudoedit /etc/hosts\n"
 net (remote desktop|R D P): 
     user.insert_cursor("xfreerdp /timeout:90000 /size:1280x800 /v:[|] /u: /p:")
 
-generate see tags: "ctags --recurse --exclude=.git --exclude=.pc *"
+(generate see tags|tags generate): "ctags --recurse --exclude=.git --exclude=.pc *"
 generate see scope database:
     insert('find . -name "*.c"')
     insert(' -o -name "*.cpp"')
@@ -250,10 +329,10 @@ sis cuddle: "sysctl "
 sis cuddle set: "sysctl -w "
 
 # extraction
-tar ball create: "tar -cvJf"
-tar ball [extract]: "tar -xvaf "
-file extract: "tar -xvaf "
+file tar [ball] create: "tar -cvJf"
+file [tar] extract: "tar -xvaf "
 file unzip: "unzip "
+file B unzip: "bunzip2 "
 file seven extract: "7z x "
 file seven list: "7z l "
 tar ball list: "tar -tf "
@@ -265,7 +344,6 @@ module search: "lsmod |rg -i"
 module probe: "modprobe "
 module remove: "rmmod "
 
-run <word>: "{word} "
 run curl: "curl "
 run double you get: "wget "
 download: "wget "
@@ -295,6 +373,7 @@ parameter:
 
 # bash convenience stuff
 history show: "history\n"
+extra that: "| xargs "
 
 net man log: "journalctl -u NetworkManager --no-pager --lines 100\n"
 
@@ -305,9 +384,14 @@ core dump debug: "coredumpctl debug\n"
 
 # ssh
 # XXX - make texts actually query a series of names from the %h config
-(secure shell|tunnel) [<user.text>]: 
+#(secure shell|tunnel) [<user.text>]: 
+#    insert("ssh ")
+#    insert(text or "")
+tunnel last:
+    key(ctrl-r)
     insert("ssh ")
-    insert(text or "")
+    key(enter)
+    key(enter)
 
 secure shall key gen: "ssh-keygen -t ed25519\n"
 secure copy [<user.text>]:
@@ -317,8 +401,13 @@ show authorized keys: "vi ~/.ssh/authorized_keys\n"
 show pub keys: "cat ~/.ssh/*.pub\n"
 edit authorized keys: "vi ~/.ssh/authorized_keys\n"
 go secure shell config: "cd ~/.ssh\n"
-terminate session:
+# talon suddenly loves the word termini
+#tunnel (terminate|termini):
+tunnel terminate:
     key(enter ~ .)
+
+# virtsh virtual console escape
+(virtual pop|console escape): key("ctrl-]")
 
 # process management
 (process grep|pee grep): "pgrep "
@@ -351,7 +440,7 @@ errors ignore: "2>/dev/null"
 # Wallpaper
 ###
 wallpaper set: "feh --bg-scale "
-wallpaper set latest: "feh --bg-scale $(find ~/images/wallpaper/ -name $(ls -Art ~/images/wallpaper/ | tail -n1))\n"
+wallpaper set latest: "feh --bg-scale $(find ~/images/wallpaper/ -name $(exa --sort latest --no-icons ~/images/wallpaper/ | tail -n1))\n"
 
 
 ###
@@ -387,3 +476,13 @@ screen resolution: "xdpyinfo | awk '/dimensions/{{print $2}}'\n"
 ###
 arch source check out: "asp checkout "
 arch source export: "asp export "
+
+
+###
+# Namespaces
+###
+
+capability list: "capsh --print\n"
+
+(unshare|namespace) root: "unshare -U -r\n"
+(unshare|namespace) net: "unshare -n\n"

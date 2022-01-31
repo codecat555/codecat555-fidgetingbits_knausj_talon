@@ -1,4 +1,4 @@
-from talon import Module
+from talon import Module, actions
 
 mod = Module()
 
@@ -15,3 +15,12 @@ class tab_actions:
 
     def tab_search():
         """Search through tabs"""
+
+    def tab_close_wrapper():
+        """Closes the current tab.
+        Exists so that apps can implement their own delay before running tab_close() to handle repetitions better.
+        """
+        actions.app.tab_close()
+
+    def tab_duplicate():
+        """Duplicates the current tab."""

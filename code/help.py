@@ -1,10 +1,13 @@
 from collections import defaultdict
 import itertools
 import math
+import re
 from typing import Dict, List, Iterable, Set, Tuple, Union
 
 from talon import Module, Context, actions, imgui, Module, registry, ui, app
 from talon.grammar import Phrase
+
+from itertools import islice
 
 mod = Module()
 mod.list("help_contexts", desc="list of available contexts")
@@ -46,14 +49,14 @@ total_page_count = 1
 cached_active_contexts_list = []
 
 live_update = True
-cached_window_title = None
 show_enabled_contexts_only = False
 
+selected_list = None
+current_list_page = 1
 
 def update_title():
     global live_update
     global show_enabled_contexts_only
-    global cached_window_title
 
     if live_update:
         if gui_context_help.showing:
@@ -63,19 +66,19 @@ def update_title():
                 update_active_contexts_cache(registry.active_contexts())
 
 
-# todo: dynamic rect?
 @imgui.open(y=0)
-def gui_alphabet(gui: imgui.GUI):
-    global alphabet
-    gui.text("Alphabet help")
+def gui_formatters(gui: imgui.GUI):
+    global formatters_words
+    gui.text("formatters help")
     gui.line()
 
-    for key, val in alphabet.items():
+    for key, val in formatters_words.items():
         gui.text("{}: {}".format(val, key))
 
     gui.spacer()
     if gui.button("close"):
-        gui_alphabet.hide()
+        gui_formatters.hide()
+
 
 
 def format_context_title(context_name: str) -> str:
@@ -201,6 +204,10 @@ def gui_context_help(gui: imgui.GUI):
         current_selection_index = 1
         for display_name in sorted_display_list:
             target_page = get_context_page(current_item_index)
+            # XXX - I hit cases where it says "abbreviate" is not in this list,
+            # so skipping for now.
+            if display_name not in display_name_to_context_name_map:
+                continue
             context_name = display_name_to_context_name_map[display_name]
             if current_context_page == target_page:
                 button_name = format_context_button(
@@ -343,18 +350,20 @@ def reset():
     global selected_context
     global search_phrase
     global selected_context_page
-    global cached_window_title
     global show_enabled_contexts_only
     global display_name_to_context_name_map
+    global selected_list
+    global current_list_page
 
     current_context_page = 1
-    sorted_display_list = None
+    sorted_display_list = []
     selected_context = None
     search_phrase = None
     selected_context_page = 1
-    cached_window_title = None
     show_enabled_contexts_only = False
     display_name_to_context_name_map = {}
+    selected_list = None
+    current_list_page = 1
 
 
 def update_active_contexts_cache(active_contexts):
@@ -369,63 +378,15 @@ overrides = {}
 
 
 def refresh_context_command_map(enabled_only=False):
-    global rule_word_map
-    global context_command_map
-    global context_map
-    global sorted_display_list
-    global show_enabled_contexts_only
-    global cached_window_title
-    global context_map
-    global display_name_to_context_name_map
-
-    context_map = {}
-    cached_short_context_names = {}
-    display_name_to_context_name_map = {}
-    show_enabled_contexts_only = enabled_only
-    cached_window_title = ui.active_window().title
     active_contexts = registry.active_contexts()
-    # print(str(active_contexts))
-    update_active_contexts_cache(active_contexts)
 
-    context_command_map = {}
+    local_context_map = {}
+    local_display_name_to_context_name_map = {}
+    local_context_command_map = {}
+    cached_short_context_names = {}
+
     for context_name, context in registry.contexts.items():
         splits = context_name.split(".")
-<<<<<<< HEAD
-        index = -1
-        if "talon" in splits[index]:
-            index = -2
-            short_name = splits[index].replace("_", " ")
-        else:
-            short_name = splits[index].replace("_", " ")
-
-        if "mac" == short_name or "win" == short_name or "linux" == short_name:
-            index = index - 1
-            short_name = splits[index].replace("_", " ")
-
-        # print("short name: " + short_name)
-        if short_name in overrides:
-            short_name = overrides[short_name]
-
-        if context in active_contexts or not enabled_only:
-            context_command_map[context_name] = {}
-            for command_alias, val in context.commands.items():
-                # print(str(val))
-                if command_alias in registry.commands:
-                    # print(str(val.rule.rule) + ": " + val.target.code)
-                    context_command_map[context_name][
-                        str(val.rule.rule)
-                    ] = val.target.code
-            # print(short_name)
-            # print("length: " + str(len(context_command_map[context_name])))
-
-            #if len(context_command_map[context_name]) == 0:
-            #    context_command_map.pop(context_name)
-            #else:
-            #    cached_short_context_names[short_name] = context_name
-            #    context_map[context_name] = context
-            cached_short_context_names[short_name] = context_name
-            context_map[context_name] = context
-=======
 
         if "talon" == splits[-1]:
             display_name = splits[-2].replace("_", " ")
@@ -440,47 +401,56 @@ def refresh_context_command_map(enabled_only=False):
                 short_names = [overrides[short_names[1]]]
 
             if enabled_only and context in active_contexts or not enabled_only:
-                context_command_map[context_name] = {}
+                local_context_command_map[context_name] = {}
                 for command_alias, val in context.commands.items():
-                    # print(str(val))
                     if command_alias in registry.commands or not enabled_only:
-                        # print(str(val.rule.rule) + ": " + val.target.code)
-                        context_command_map[context_name][
+                        local_context_command_map[context_name][
                             str(val.rule.rule)
                         ] = val.target.code
-                # print(short_name)
-                # print("length: " + str(len(context_command_map[context_name])))
-                if len(context_command_map[context_name]) == 0:
-                    context_command_map.pop(context_name)
+                if len(local_context_command_map[context_name]) == 0:
+                    local_context_command_map.pop(context_name)
                 else:
                     for short_name in short_names:
                         cached_short_context_names[short_name] = context_name
 
                     # the last entry will contain no symbols
-                    display_name_to_context_name_map[display_name] = context_name
-                    context_map[context_name] = context
->>>>>>> upstream/master
+                    local_display_name_to_context_name_map[display_name] = context_name
+                    local_context_map[context_name] = context
 
-    refresh_rule_word_map(context_command_map)
+
+
+    # Update all the global state after we've performed our calculations
+    global context_map
+    global context_command_map
+    global sorted_display_list
+    global show_enabled_contexts_only
+    global display_name_to_context_name_map
+    global rule_word_map
+
+    context_map = local_context_map
+    context_command_map = local_context_command_map
+    sorted_display_list = sorted(local_display_name_to_context_name_map.keys())
+    show_enabled_contexts_only = enabled_only
+    display_name_to_context_name_map = local_display_name_to_context_name_map
+    rule_word_map = refresh_rule_word_map(local_context_command_map)
 
     ctx.lists["self.help_contexts"] = cached_short_context_names
-    # print(str(ctx.lists["self.help_contexts"]))
-    sorted_display_list = sorted(display_name_to_context_name_map.keys())
+    update_active_contexts_cache(active_contexts)
 
 
 def refresh_rule_word_map(context_command_map):
-    global rule_word_map
     rule_word_map = defaultdict(set)
 
     for context_name, commands in context_command_map.items():
         for rule in commands:
-            tokens = set(token for token in rule.split(" ") if token.isalpha())
+            tokens = set(token for token in re.split(r'\W+', rule) if token.isalpha())
             for token in tokens:
                 rule_word_map[token].add((context_name, rule))
 
+    return rule_word_map
+
 
 events_registered = False
-
 
 def register_events(register: bool):
     global events_registered
@@ -494,14 +464,90 @@ def register_events(register: bool):
         # registry.unregister('post:update_contexts', contexts_updated)
         registry.unregister("update_commands", commands_updated)
 
+def hide_all_help_guis():
+    gui_context_help.hide()    
+    gui_formatters.hide()
+    gui_list_help.hide()
+
+def paginate_list(data, SIZE=None):
+    chunk_size = SIZE or setting_help_max_command_lines_per_page.get()
+    it = iter(data)
+    for i in range(0, len(data), chunk_size):
+        yield {k:data[k] for k in islice(it, chunk_size)}
+
+def draw_list_commands(gui: imgui.GUI):
+    global selected_list
+    global total_page_count
+    global selected_context_page
+
+    talon_list = registry.lists[selected_list][0]
+    #numpages = math.ceil(len(talon_list) / SIZE)
+    
+    pages_list = []
+
+    for item in paginate_list(talon_list):
+        pages_list.append(item)
+    #print(pages_list)
+
+    total_page_count = len(pages_list)
+    return pages_list  
+
+@imgui.open(y=0)
+def gui_list_help(gui: imgui.GUI):
+    global total_page_count
+    global current_list_page
+    global selected_list
+
+    pages_list = draw_list_commands(gui)
+    total_page_count = len(pages_list)
+    #print(pages_list[current_page])
+
+    gui.text("{} {}/{}".format(selected_list, current_list_page, total_page_count))
+
+    gui.line()
+    
+    for key, value in pages_list[current_list_page - 1].items():
+        gui.text("{}: {}".format(value, key))
+
+    gui.spacer()
+    
+    if total_page_count > 1:
+        if gui.button("Next..."):
+            actions.user.help_next()
+
+        if gui.button("Previous..."):
+            actions.user.help_previous()
+
+        if gui.button("Return"):
+            actions.user.help_return()
+
+    if gui.button("Refresh"):
+        actions.user.help_refresh()
+
+    if gui.button("Close"):
+        actions.user.help_hide()
+
 
 @mod.action_class
 class Actions:
-    def help_alphabet(ab: dict):
-        """Provides the alphabet dictionary"""
+
+    def help_list(ab: str):
+        """Provides the symbol dictionary"""
         # what you say is stored as a trigger
-        global alphabet
-        alphabet = ab
+        global selected_list
+        reset()
+        selected_list = ab
+        gui_list_help.show()
+        register_events(True)
+        actions.mode.enable("user.help")
+
+
+
+    def help_formatters(ab: dict):
+        """Provides the list of formatter keywords"""
+        # what you say is stored as a trigger
+        global formatters_words
+        formatters_words = ab
         reset()
         # print("help_alphabet - alphabet gui_alphabet: {}".format(gui_alphabet.showing))
         # print(
@@ -509,17 +555,18 @@ class Actions:
         #         gui_context_help.showing
         #     )
         # )
-        gui_context_help.hide()
-        gui_alphabet.hide()
-        gui_alphabet.show()
+        hide_all_help_guis()
+        gui_formatters.show()
         register_events(False)
         actions.mode.enable("user.help")
+
+
 
     def help_context_enabled():
         """Display contextual command info"""
         reset()
         refresh_context_command_map(enabled_only=True)
-        gui_alphabet.hide()
+        hide_all_help_guis()
         gui_context_help.show()
         register_events(True)
         actions.mode.enable("user.help")
@@ -528,7 +575,7 @@ class Actions:
         """Display contextual command info"""
         reset()
         refresh_context_command_map()
-        gui_alphabet.hide()
+        hide_all_help_guis()
         gui_context_help.show()
         register_events(True)
         actions.mode.enable("user.help")
@@ -540,7 +587,7 @@ class Actions:
         reset()
         search_phrase = phrase
         refresh_context_command_map()
-        gui_alphabet.hide()
+        hide_all_help_guis()
         gui_context_help.show()
         register_events(True)
         actions.mode.enable("user.help")
@@ -558,7 +605,7 @@ class Actions:
             update_active_contexts_cache(registry.active_contexts())
 
         selected_context = m
-        gui_alphabet.hide()
+        hide_all_help_guis()
         gui_context_help.show()
         register_events(True)
         actions.mode.enable("user.help")
@@ -569,6 +616,8 @@ class Actions:
         global selected_context
         global selected_context_page
         global total_page_count
+
+        global current_list_page
 
         if gui_context_help.showing:
             if selected_context is None and search_phrase is None:
@@ -581,6 +630,12 @@ class Actions:
                     selected_context_page += 1
                 else:
                     selected_context_page = 1
+
+        if gui_list_help.showing:
+            if current_list_page != total_page_count:
+                current_list_page += 1
+            else:
+                current_list_page = 1
 
     def help_select_index(index: int):
         """Select the context by a number"""
@@ -605,7 +660,9 @@ class Actions:
         global current_context_page
         global selected_context
         global selected_context_page
-        global total_page_count
+        global total_page_count 
+
+        global current_list_page
 
         if gui_context_help.showing:
             if selected_context is None and search_phrase is None:
@@ -619,6 +676,12 @@ class Actions:
                     selected_context_page -= 1
                 else:
                     selected_context_page = total_page_count
+
+        if gui_list_help.showing:
+            if current_list_page != total_page_count:
+                current_list_page -= 1
+            else:
+                current_list_page = 1
 
     def help_return():
         """Returns to the main help window"""
@@ -651,15 +714,10 @@ class Actions:
         #     "help_hide - gui_context_help showing: {}".format(gui_context_help.showing)
         # )
 
-        gui_alphabet.hide()
-        gui_context_help.hide()
+        hide_all_help_guis()
         refresh_context_command_map()
         register_events(False)
         actions.mode.disable("user.help")
 
-
 def commands_updated(_):
     update_title()
-
-
-app.register("ready", refresh_context_command_map)
