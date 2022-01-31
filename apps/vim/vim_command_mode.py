@@ -27,6 +27,9 @@ class EditActions:
     def paste():
         actions.key("ctrl-shift-v")
 
+    def undo():
+        actions.user.vim_normal_mode_key("u")
+
 
 @ctx.action_class("user")
 class UserActions:

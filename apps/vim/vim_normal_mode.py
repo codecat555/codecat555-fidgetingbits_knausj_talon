@@ -17,3 +17,6 @@ class EditActions:
 
     def extend_line_down():
         actions.user.insert("Vj")
+
+    def undo():
+        actions.user.vim_normal_mode_key("u")
