@@ -2,6 +2,8 @@ This is my copy of the [fidgetingbits/knausj_talon](https://github.com/fidgeting
 
 This repo has good support for vim, as well as other useful stuff.
 
+*Note*: This copy is not identical to the original, there are some (minor) customizations.
+
 I pull parts this repo into my tree using git sparse checkout. Here's what my config looks like:
 
     $ cat .git/info/sparse-checkout
