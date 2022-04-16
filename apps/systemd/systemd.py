@@ -11,25 +11,25 @@ and tag: user.systemd
 class UserActions:
     # System-wide services
     def service():
-        actions.user.insert_cursor("systemctl --no-pager [|].service")
+        actions.insert("systemctl --no-pager ")
 
     def service_stop():
-        actions.user.insert_cursor("systemctl --no-pager stop [|].service")
+        actions.insert("systemctl --no-pager stop ")
 
     def service_start():
-        actions.user.insert_cursor("systemctl --no-pager start [|].service")
+        actions.insert("systemctl --no-pager start ")
 
     def service_restart():
-        actions.user.insert_cursor("systemctl --no-pager restart [|].service")
+        actions.insert("systemctl --no-pager restart ")
 
     def service_status():
-        actions.user.insert_cursor("systemctl --no-pager status [|].service")
+        actions.insert("systemctl --no-pager status ")
 
     def service_enable():
-        actions.user.insert_cursor("systemctl --no-pager enable [|].service")
+        actions.insert("systemctl --no-pager enable ")
 
     def service_disable():
-        actions.user.insert_cursor("systemctl --no-pager disable [|].service")
+        actions.insert("systemctl --no-pager disable ")
 
     # System-Wide timers
     def timer():
